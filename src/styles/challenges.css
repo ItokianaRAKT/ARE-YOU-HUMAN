@@ -131,3 +131,50 @@
   opacity: 0.25;
   cursor: not-allowed;
 }
+
+/* --- 03 symmetry ------------------------------------------------- */
+.symmetry {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.symmetry__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: var(--space-3);
+  min-width: 0;
+  min-height: 0;
+}
+
+.symmetry__panel--ref {
+  border-right: 1px solid var(--ink);
+}
+
+.symmetry__figure {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+
+.symmetry__figure svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.symmetry__canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 180px;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.symmetry__tools {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
