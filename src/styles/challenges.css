@@ -23,6 +23,10 @@
   display: block;
 }
 
+.blot--ghost {
+  animation: fade-in 0.45s var(--ease-organic) both;
+}
+
 .meter {
   height: 2px;
   background: var(--hairline);
