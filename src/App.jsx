@@ -1,5 +1,9 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import './App.css'
+import './styles/challenges.css'
+import VerdictBar from './components/VerdictBar.jsx'
+import { challenges } from './challenges/registry.js'
+import { pickOther } from './lib/random.js'
 
 function makeSessionId() {
   const hex = '0123456789ABCDEF'
@@ -12,7 +16,22 @@ function makeSessionId() {
 }
 
 function App() {
-  const sessionId = useMemo(makeSessionId, [])
+  const sessionId = useMemo(() => makeSessionId(), [])
+  const [current, setCurrent] = useState(() =>
+    challenges.length ? pickOther(challenges, null) : null,
+  )
+  const [verdict, setVerdict] = useState(null)
+
+  const handleReject = useCallback((message) => {
+    setVerdict(message)
+  }, [])
+
+  const handleRetry = useCallback(() => {
+    setVerdict(null)
+    setCurrent((prev) => pickOther(challenges, prev))
+  }, [])
+
+  const ActiveChallenge = current ? current.Component : null
 
   return (
     <div className="app">
@@ -33,9 +52,17 @@ function App() {
       </div>
 
       <main className="app__main">
-        <p className="app__placeholder label">
-          Aucune épreuve assignée à cette session
-        </p>
+        {ActiveChallenge ? (
+          <div className="app__challenge" key={current.id}>
+            <ActiveChallenge onReject={handleReject} />
+          </div>
+        ) : (
+          <p className="app__placeholder label">
+            Aucune épreuve assignée à cette session
+          </p>
+        )}
+
+        {verdict ? <VerdictBar message={verdict} onRetry={handleRetry} /> : null}
       </main>
 
       <footer className="app__footer mono">
