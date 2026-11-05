@@ -6,7 +6,7 @@ import { makeNoise } from '../lib/random.js'
 const INSTRUCTION =
   'Dessinez à main levée le reflet symétrique exact de cette tache pour prouver votre conscience spatiale.'
 
-export function SymmetryChallenge() {
+export function SymmetryChallenge({ onReject }) {
   const [reference] = useState(() =>
     blobPoints({
       seed: Math.random() * 1000,
@@ -21,7 +21,17 @@ export function SymmetryChallenge() {
   const strokesRef = useRef([])
   const drawingRef = useRef(false)
   const [strokeCount, setStrokeCount] = useState(0)
+  const [phase, setPhase] = useState('idle')
+  const phaseRef = useRef('idle')
+  const timerRef = useRef(null)
   const [noise] = useState(() => makeNoise(Math.floor(Math.random() * 9000) + 1))
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current)
+    },
+    [],
+  )
 
   /**
    * The rendered trace deliberately differs from the raw input: a smooth
@@ -158,6 +168,18 @@ export function SymmetryChallenge() {
     redraw()
   }
 
+  const handleSubmit = () => {
+    if (phaseRef.current !== 'idle' || strokesRef.current.length === 0) return
+    phaseRef.current = 'analyzing'
+    setPhase('analyzing')
+    timerRef.current = window.setTimeout(() => {
+      const deviation = (0.02 + Math.random() * 0.07).toFixed(2)
+      onReject(
+        `Déviance de ${deviation}% par rapport à l’axe. Les robots ne tremblent pas. Rejet de l’épreuve 03.`,
+      )
+    }, 1500)
+  }
+
   return (
     <ChallengeShell
       index="03"
@@ -201,11 +223,28 @@ export function SymmetryChallenge() {
             onPointerLeave={handlePointerUp}
           />
           <div className="symmetry__tools">
-            <button type="button" className="btn" onClick={handleClear}>
+            <button
+              type="button"
+              className="btn"
+              onClick={handleClear}
+              disabled={phase !== 'idle'}
+            >
               Effacer
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={handleSubmit}
+              disabled={phase !== 'idle' || strokeCount === 0}
+            >
+              Valider le tracé
             </button>
           </div>
         </div>
+
+        {phase === 'analyzing' ? (
+          <p className="stage-note">Analyse de l’axe en cours…</p>
+        ) : null}
       </div>
     </ChallengeShell>
   )
