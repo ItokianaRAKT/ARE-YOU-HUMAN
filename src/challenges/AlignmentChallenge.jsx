@@ -5,21 +5,33 @@ import { blobPoints, pointsToPath } from '../lib/blob.js'
 const INSTRUCTION =
   'Ajustez la forme jusqu’à ce qu’elle exprime une profonde nostalgie.'
 
-const CX = 200
-const CY = 150
+const CX = 230
+const CY = 170
 
-const BASE = blobPoints({ seed: 42.71, count: 12, radius: 86, variance: 0.26 })
+const BASE = blobPoints({
+  seed: 42.71,
+  count: 12,
+  radius: 86,
+  variance: 0.26,
+  cx: CX,
+  cy: CY,
+})
 
 function shapeAt(now, v) {
   return BASE.map(([x, y], i) => {
     const dx = x - CX
     const dy = y - CY
     const len = Math.hypot(dx, dy) || 1
-    const pull = Math.sin(i * 1.7 + v * Math.PI * 2) * (10 + v * 24)
-    const breathe = 1 + Math.sin(now * 0.0011 + i * 0.6) * 0.05
+    const swirl =
+      Math.sin(now * 0.0038 + i * 2.1 + v * 14) *
+      Math.cos(now * 0.0026 - i * 1.3 + v * 9)
+    const amplitude = 17 + 42 * Math.abs(v - 0.5) * 2
+    const push = swirl * amplitude
+    const jitter = Math.sin(now * 0.021 + i * 5.7) * 3.4
+    const radius = len + push + jitter
     return [
-      CX + (dx / len) * (len * breathe + pull),
-      CY + (dy / len) * (len * breathe + pull),
+      CX + (dx / len) * radius + Math.sin(now * 0.005 + i) * 4.5,
+      CY + (dy / len) * radius + Math.cos(now * 0.0043 + i * 1.4) * 4.5,
     ]
   })
 }
@@ -39,10 +51,12 @@ export function AlignmentChallenge() {
         pathRef.current.setAttribute('d', pointsToPath(shapeAt(now, v)))
       }
       if (groupRef.current) {
-        const rot = Math.sin(now * 0.0004 + v * 3) * 7
+        const rot = Math.sin(now * 0.0016 + v * 9) * 15 + Math.sin(now * 0.011) * 1.6
+        const skew = Math.sin(now * 0.0021 + v * 5) * 13
+        const drift = Math.sin(now * 0.0031) * 9
         groupRef.current.setAttribute(
           'transform',
-          `rotate(${rot.toFixed(2)} ${CX} ${CY})`,
+          `translate(${drift.toFixed(1)} 0) translate(${CX} ${CY}) rotate(${rot.toFixed(2)}) skewX(${skew.toFixed(2)}) translate(${-CX} ${-CY})`,
         )
       }
       frame += 1
@@ -81,7 +95,7 @@ export function AlignmentChallenge() {
     >
       <div className="stage alignment">
         <div className="alignment__figure">
-          <svg width="400" height="300" viewBox="0 0 400 300" aria-hidden="true">
+          <svg width="460" height="340" viewBox="0 0 460 340" aria-hidden="true">
             <g ref={groupRef}>
               <path ref={pathRef} d={pointsToPath(BASE)} fill="var(--ink)" />
             </g>
