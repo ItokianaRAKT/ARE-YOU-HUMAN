@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ChallengeShell from '../components/ChallengeShell.jsx'
 import { blobPoints, pointsToPath } from '../lib/blob.js'
+import { makeNoise } from '../lib/random.js'
 
 const INSTRUCTION =
   'Dessinez à main levée le reflet symétrique exact de cette tache pour prouver votre conscience spatiale.'
@@ -20,37 +21,79 @@ export function SymmetryChallenge() {
   const strokesRef = useRef([])
   const drawingRef = useRef(false)
   const [strokeCount, setStrokeCount] = useState(0)
+  const [noise] = useState(() => makeNoise(Math.floor(Math.random() * 9000) + 1))
 
-  const redraw = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const dpr = window.devicePixelRatio || 1
-    const width = canvas.width / dpr
-    const height = canvas.height / dpr
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.clearRect(0, 0, width, height)
-    ctx.strokeStyle = '#0b0b0b'
-    ctx.fillStyle = '#0b0b0b'
-    ctx.lineWidth = 2
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-
-    strokesRef.current.forEach((stroke) => {
-      if (stroke.length === 1) {
-        ctx.beginPath()
-        ctx.arc(stroke[0][0], stroke[0][1], 1.4, 0, Math.PI * 2)
-        ctx.fill()
-        return
+  /**
+   * The rendered trace deliberately differs from the raw input: a smooth
+   * drift, a fine tremble and a growing offset from the mirror axis.
+   */
+  const tremble = useCallback(
+    (stroke, width, now) => {
+      const n = stroke.length
+      if (n === 1) {
+        const [x, y] = stroke[0]
+        return [
+          [
+            x + noise(0.4) * 1.6 + Math.sin(now * 0.005) * 1.2,
+            y + noise(9.7) * 1.6 + Math.cos(now * 0.0043) * 1.2,
+          ],
+        ]
       }
-      ctx.beginPath()
-      stroke.forEach(([x, y], i) => {
-        if (i === 0) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
+      return stroke.map(([x, y], i) => {
+        const prev = stroke[Math.max(i - 1, 0)]
+        const next = stroke[Math.min(i + 1, n - 1)]
+        let dx = next[0] - prev[0]
+        let dy = next[1] - prev[1]
+        const len = Math.hypot(dx, dy) || 1
+        dx /= len
+        dy /= len
+        const lateral =
+          noise(i * 0.42) * 4.6 +
+          noise(i * 2.9 + 40) * 1.5 +
+          (x / Math.max(width, 1)) * 5.5
+        return [
+          x - dy * lateral + noise(i * 3.7 + 120) * 1.1,
+          y + dx * lateral + noise(i * 3.7 + 260) * 1.1,
+        ]
       })
-      ctx.stroke()
-    })
-  }, [])
+    },
+    [noise],
+  )
+
+  const redraw = useCallback(
+    (now = performance.now()) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      const dpr = window.devicePixelRatio || 1
+      const width = canvas.width / dpr
+      const height = canvas.height / dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, width, height)
+      ctx.strokeStyle = '#0b0b0b'
+      ctx.fillStyle = '#0b0b0b'
+      ctx.lineWidth = 2
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+
+      strokesRef.current.forEach((stroke) => {
+        const drawn = tremble(stroke, width, now)
+        if (drawn.length === 1) {
+          ctx.beginPath()
+          ctx.arc(drawn[0][0], drawn[0][1], 1.4, 0, Math.PI * 2)
+          ctx.fill()
+          return
+        }
+        ctx.beginPath()
+        drawn.forEach(([x, y], i) => {
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        })
+        ctx.stroke()
+      })
+    },
+    [tremble],
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -66,6 +109,21 @@ export function SymmetryChallenge() {
     const observer = new ResizeObserver(fit)
     observer.observe(canvas)
     return () => observer.disconnect()
+  }, [redraw])
+
+  // The trace never sits still: it keeps trembling even after the release.
+  useEffect(() => {
+    let raf = 0
+    let last = 0
+    const loop = (now) => {
+      if (strokesRef.current.length > 0 && now - last > 70) {
+        last = now
+        redraw(now)
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
   }, [redraw])
 
   const localPoint = (event) => {
@@ -117,7 +175,7 @@ export function SymmetryChallenge() {
           </div>
           <div className="status-row">
             <span className="label">Tremblement</span>
-            <span className="status-value">Aucun</span>
+            <span className="status-value">Actif — ligne vivante</span>
           </div>
         </>
       }
