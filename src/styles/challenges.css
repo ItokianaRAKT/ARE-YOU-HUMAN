@@ -1,1 +1,42 @@
 /* Challenge-specific styles. One section per protocol. */
+
+/* --- shared stage ------------------------------------------------ */
+.stage {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  user-select: none;
+}
+
+/* --- 01 patience ------------------------------------------------- */
+.blot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.blot svg {
+  display: block;
+}
+
+.blot--ghost {
+  animation: fade-in 0.45s var(--ease-organic) both;
+}
+
+.meter {
+  height: 2px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
