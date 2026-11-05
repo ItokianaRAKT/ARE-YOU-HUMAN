@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import './styles/challenges.css'
 import VerdictBar from './components/VerdictBar.jsx'
 import { challenges } from './challenges/registry.js'
 import { pickOther } from './lib/random.js'
+import { createAmbientDrone } from './lib/ambient.js'
 
 function makeSessionId() {
   const hex = '0123456789ABCDEF'
@@ -17,10 +18,18 @@ function makeSessionId() {
 
 function App() {
   const sessionId = useMemo(() => makeSessionId(), [])
+  const audio = useMemo(() => createAmbientDrone(), [])
+  const [audioOn, setAudioOn] = useState(false)
   const [current, setCurrent] = useState(() =>
     challenges.length ? pickOther(challenges, null) : null,
   )
   const [verdict, setVerdict] = useState(null)
+
+  useEffect(() => () => audio.stop(), [audio])
+
+  const toggleAudio = useCallback(() => {
+    setAudioOn(audio.toggle())
+  }, [audio])
 
   const handleReject = useCallback((message) => {
     setVerdict(message)
@@ -40,8 +49,13 @@ function App() {
         <div className="app__session">
           Session <span>{sessionId}</span>
         </div>
-        <button type="button" className="app__audio mono">
-          Audio — off
+        <button
+          type="button"
+          className="app__audio mono"
+          data-on={audioOn}
+          onClick={toggleAudio}
+        >
+          Audio — {audioOn ? 'on' : 'off'}
         </button>
       </header>
 
