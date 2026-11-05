@@ -126,3 +126,8 @@
   border-radius: 0;
   background: var(--ink);
 }
+
+.slider:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}

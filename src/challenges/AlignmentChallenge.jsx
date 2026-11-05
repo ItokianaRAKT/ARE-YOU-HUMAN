@@ -8,6 +8,26 @@ const INSTRUCTION =
 const CX = 230
 const CY = 170
 
+/** Every reading is rejected — with a different pseudo-clinical reason. */
+function verdictFor(v) {
+  if (v < 25) {
+    return 'Calcul en cours… Erreur : cette forme exprime de la colère. Les humains ne confondent pas la nostalgie et la colère.'
+  }
+  if (v < 45) {
+    return 'Calcul en cours… Erreur : cette forme exprime de l’ennui. La nostalgie n’est jamais un vide.'
+  }
+  if (v < 62) {
+    return 'Calcul en cours… Erreur : cette forme exprime de la panique. Votre réglage décrit une fuite, pas un souvenir.'
+  }
+  if (v < 86) {
+    return 'Calcul en cours… Erreur : cette forme exprime de la joie. La nostalgie contient toujours une perte.'
+  }
+  if (v < 94) {
+    return 'Calcul en cours… Erreur : cette forme exprime de la nostalgie. Aucun des douze sujets témoins n’a produit cette courbe. Signature synthétique.'
+  }
+  return 'Calcul en cours… Erreur : cette forme exprime de l’indifférence. Les humains ne confondent pas la nostalgie et l’indifférence.'
+}
+
 const BASE = blobPoints({
   seed: 42.71,
   count: 12,
@@ -36,11 +56,20 @@ function shapeAt(now, v) {
   })
 }
 
-export function AlignmentChallenge() {
+export function AlignmentChallenge({ onReject }) {
   const [value, setValue] = useState(50)
+  const [phase, setPhase] = useState('idle')
   const valueRef = useRef(50)
+  const phaseRef = useRef('idle')
+  const timerRef = useRef(null)
   const pathRef = useRef(null)
   const groupRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     let raf = 0
@@ -72,6 +101,15 @@ export function AlignmentChallenge() {
     setValue(next)
   }
 
+  const handleRelease = () => {
+    if (phaseRef.current !== 'idle') return
+    phaseRef.current = 'calculating'
+    setPhase('calculating')
+    timerRef.current = window.setTimeout(() => {
+      onReject(verdictFor(valueRef.current))
+    }, 1500)
+  }
+
   return (
     <ChallengeShell
       index="02"
@@ -85,6 +123,12 @@ export function AlignmentChallenge() {
           </div>
           <div className="meter" aria-hidden="true">
             <i style={{ transform: `scaleX(${value / 100})` }} />
+          </div>
+          <div className="status-row">
+            <span className="label">Analyse</span>
+            <span className="status-value">
+              {phase === 'idle' ? 'En attente' : 'Calcul…'}
+            </span>
           </div>
           <div className="status-row">
             <span className="label">Source</span>
@@ -116,6 +160,12 @@ export function AlignmentChallenge() {
             step="0.1"
             value={value}
             onChange={handleChange}
+            onPointerUp={handleRelease}
+            onPointerCancel={handleRelease}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') handleRelease()
+            }}
+            disabled={phase !== 'idle'}
             aria-label="Amplitude émotionnelle"
           />
           <div className="alignment__ticks" aria-hidden="true">
@@ -124,6 +174,10 @@ export function AlignmentChallenge() {
             ))}
           </div>
         </div>
+
+        {phase === 'calculating' ? (
+          <p className="stage-note">Calcul en cours…</p>
+        ) : null}
       </div>
     </ChallengeShell>
   )
