@@ -5,6 +5,14 @@ import { rand } from '../lib/random.js'
 
 const HOLD_MS = 5000
 const HOLD_RADIUS = 36
+const APPROACH_RADIUS = 104
+
+const TRAP_MESSAGES = [
+  'Vitesse de réaction inhumaine détectée. Recommencez.',
+  'Le curseur a anticipé le déplacement de la cible. Recommencez.',
+  'Poursuite sans hésitation : tracé robotique. Recommencez.',
+  'Distance d’approche franchie en 0 ms. Recommencez.',
+]
 
 const INSTRUCTION =
   'Pour prouver votre humanité, maintenez votre curseur au centre exact de la tache pendant 5 secondes.'
@@ -23,6 +31,9 @@ export function PatienceChallenge() {
   const meterBarRef = useRef(null)
   const pointerRef = useRef({ x: -9999, y: -9999, inside: false })
   const [shapes] = useState(makeShapes)
+  const [note, setNote] = useState(null)
+  const noteTimerRef = useRef(null)
+  const noteSeqRef = useRef(0)
   const blotStateRef = useRef({
     x: 0,
     y: 0,
@@ -30,6 +41,7 @@ export function PatienceChallenge() {
     ty: 0,
     nextTargetAt: 0,
     hold: 0,
+    boostUntil: 0,
     measured: false,
   })
 
@@ -60,6 +72,43 @@ export function PatienceChallenge() {
     let raf = 0
     let last = performance.now()
     let frame = 0
+    let trapIndex = 0
+
+    const flash = (text) => {
+      if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
+      noteSeqRef.current += 1
+      setNote({ id: noteSeqRef.current, text })
+      noteTimerRef.current = window.setTimeout(() => setNote(null), 3000)
+    }
+
+    /** Jump as far away from the cursor as the stage allows. */
+    const escapeFrom = (pointer, w, h) => {
+      let best = [w * 0.5, h * 0.5]
+      let bestDist = -1
+      for (let i = 0; i < 14; i += 1) {
+        const x = rand(70, Math.max(w - 70, 71))
+        const y = rand(70, Math.max(h - 70, 71))
+        const dist = Math.hypot(x - pointer.x, y - pointer.y)
+        if (dist > bestDist) {
+          bestDist = dist
+          best = [x, y]
+        }
+      }
+      return best
+    }
+
+    const react = (state, pointer, now, w, h) => {
+      state.hold = 0
+      const [x, y] = escapeFrom(pointer, w, h)
+      state.x = x
+      state.y = y
+      state.tx = x
+      state.ty = y
+      state.nextTargetAt = now + rand(1500, 2600)
+      state.boostUntil = now + 1500
+      flash(TRAP_MESSAGES[trapIndex % TRAP_MESSAGES.length])
+      trapIndex += 1
+    }
 
     const loop = (now) => {
       const dt = Math.min(now - last, 50)
@@ -77,13 +126,17 @@ export function PatienceChallenge() {
         const dx = state.tx - state.x
         const dy = state.ty - state.y
         const dist = Math.hypot(dx, dy) || 1
-        const step = (14 * dt) / 1000
+        const speed = now < state.boostUntil ? 96 : 14
+        const step = (speed * dt) / 1000
         state.x += (dx / dist) * step
         state.y += (dy / dist) * step
 
         blot.style.transform = `translate3d(${state.x - 100}px, ${state.y - 100}px, 0)`
 
         const d = Math.hypot(pointer.x - state.x, pointer.y - state.y)
+        if (pointer.inside && d < APPROACH_RADIUS) {
+          react(state, pointer, now, width, height)
+        }
         if (pointer.inside && d < HOLD_RADIUS) {
           state.hold = Math.min(state.hold + dt, HOLD_MS)
         } else {
@@ -113,6 +166,7 @@ export function PatienceChallenge() {
     return () => {
       cancelAnimationFrame(raf)
       observer.disconnect()
+      if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
     }
   }, [shapes])
 
@@ -167,6 +221,12 @@ export function PatienceChallenge() {
             />
           </svg>
         </div>
+
+        {note ? (
+          <p className="stage-note" key={note.id}>
+            {note.text}
+          </p>
+        ) : null}
       </div>
     </ChallengeShell>
   )
