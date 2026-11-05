@@ -40,3 +40,94 @@
   transform: scaleX(0);
   transform-origin: left center;
 }
+
+/* --- 02 emotional alignment -------------------------------------- */
+.alignment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 46px;
+  padding: var(--space-4) var(--space-3);
+}
+
+.alignment__figure svg {
+  display: block;
+}
+
+.alignment__controls {
+  width: min(580px, 86%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alignment__scale {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-45);
+}
+
+.alignment__ticks {
+  display: flex;
+  justify-content: space-between;
+}
+
+.alignment__ticks i {
+  display: block;
+  width: 1px;
+  height: 6px;
+  background: var(--ink-25);
+}
+
+.alignment__ticks i.major {
+  height: 12px;
+  background: var(--ink-45);
+}
+
+.slider {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--ink);
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 26px;
+  margin-top: -13px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+}
+
+.slider::-moz-range-track {
+  height: 1px;
+  background: var(--ink);
+}
+
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 26px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ink);
+}
+
+.slider:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
