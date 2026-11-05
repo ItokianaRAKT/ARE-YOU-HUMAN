@@ -21,8 +21,20 @@ const INSTRUCTION =
   'Pour prouver votre humanité, maintenez votre curseur au centre exact de la tache pendant 5 secondes.'
 
 function makeShapes() {
-  const a = blobPoints({ seed: Math.random() * 1000, count: 9, radius: 62 })
-  const b = blobPoints({ seed: Math.random() * 1000, count: 9, radius: 62 })
+  const a = blobPoints({
+    seed: Math.random() * 1000,
+    count: 9,
+    radius: 62,
+    cx: 100,
+    cy: 100,
+  })
+  const b = blobPoints({
+    seed: Math.random() * 1000,
+    count: 9,
+    radius: 62,
+    cx: 100,
+    cy: 100,
+  })
   return [a, b]
 }
 
