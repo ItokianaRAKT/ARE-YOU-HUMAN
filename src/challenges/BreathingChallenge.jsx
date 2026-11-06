@@ -19,7 +19,13 @@ const FAST_MESSAGES = [
   'Micro-rafale motrice détectée. Recommencez.',
 ]
 
-export function BreathingChallenge() {
+const FINAL_MESSAGE =
+  'Trois cycles perdus en moins de vingt secondes. Aucun humain ne suit une respiration sans micro-mouvement. Rejet de l’épreuve 05.'
+
+const IMPOSSIBLE_MESSAGE =
+  'Trois cycles complets sans une seule dérive posturale (σ = 0,003 px). Les humains tremblent. Rejet de l’épreuve 05.'
+
+export function BreathingChallenge({ onReject }) {
   const stageRef = useRef(null)
   const circleRef = useRef(null)
   const phaseValueRef = useRef(null)
@@ -83,6 +89,7 @@ export function BreathingChallenge() {
     let strikeCount = 0
     let lostIndex = 0
     let fastIndex = 0
+    let stopped = false
 
     const flash = (text) => {
       if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
@@ -92,14 +99,20 @@ export function BreathingChallenge() {
     }
 
     const strike = (text) => {
+      if (stopped) return
       flash(text)
       strikeCount += 1
       setStrikes(strikeCount)
       cycleCount = 0
       setCycles(0)
+      if (strikeCount >= 3) {
+        stopped = true
+        onReject(FINAL_MESSAGE)
+      }
     }
 
     const loop = (now) => {
+      if (stopped) return
       const dt = Math.min(now - last, 50)
       last = now
       const state = stateRef.current
@@ -114,6 +127,10 @@ export function BreathingChallenge() {
           if (pointerRef.current.wasInside) {
             cycleCount += 1
             setCycles(Math.min(cycleCount, CYCLES_TOTAL))
+            if (cycleCount >= CYCLES_TOTAL) {
+              stopped = true
+              onReject(IMPOSSIBLE_MESSAGE)
+            }
           }
         }
 
@@ -181,7 +198,7 @@ export function BreathingChallenge() {
       observer.disconnect()
       if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
     }
-  }, [])
+  }, [onReject])
 
   const handlePointerMove = (event) => {
     const stage = stageRef.current
