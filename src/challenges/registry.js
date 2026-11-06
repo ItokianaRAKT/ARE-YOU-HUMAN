@@ -1,6 +1,7 @@
 import PatienceChallenge from './PatienceChallenge.jsx'
 import AlignmentChallenge from './AlignmentChallenge.jsx'
 import SymmetryChallenge from './SymmetryChallenge.jsx'
+import ObsessionChallenge from './ObsessionChallenge.jsx'
 
 /**
  * Registry of available tests. Each branch of the project appends its own
@@ -23,5 +24,10 @@ export const challenges = [
     id: 'symmetry',
     index: '03',
     Component: SymmetryChallenge,
+  },
+  {
+    id: 'obsession',
+    index: '04',
+    Component: ObsessionChallenge,
   },
 ]
