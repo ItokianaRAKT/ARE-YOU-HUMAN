@@ -11,20 +11,25 @@ const MARGIN = 40
 const TONES = ['var(--ink)', '#1e1e1e', '#424242']
 
 function makeBlots() {
-  return Array.from({ length: COUNT }, () => ({
+  return Array.from({ length: COUNT }, () => mutateBlot())
+}
+
+/** Every surviving blot gets a brand new body: shape, size and tone. */
+function mutateBlot() {
+  return {
     r: randInt(18, 34),
     path: pointsToPath(
       blobPoints({
         seed: Math.random() * 1000,
-        count: 8,
+        count: randInt(7, 11),
         radius: 30,
-        variance: 0.4,
+        variance: rand(0.3, 0.55),
         cx: 40,
         cy: 40,
       }),
     ),
-    tone: 0,
-  }))
+    tone: randInt(0, TONES.length - 1),
+  }
 }
 
 function makeMotion(count, width, height) {
@@ -45,7 +50,7 @@ export function ObsessionChallenge() {
   const cellRefs = useRef([])
   const motionRef = useRef([])
   const orderRef = useRef([])
-  const [blots] = useState(makeBlots)
+  const [blots, setBlots] = useState(makeBlots)
   const [order, setOrder] = useState([])
   const [ready, setReady] = useState(false)
 
@@ -111,6 +116,18 @@ export function ObsessionChallenge() {
     if (orderRef.current.includes(id)) return
     orderRef.current.push(id)
     setOrder([...orderRef.current])
+
+    // Every blot you did not pick instantly becomes something else.
+    setBlots((prev) =>
+      prev.map((blot, i) => (orderRef.current.includes(i) ? blot : mutateBlot())),
+    )
+    motionRef.current.forEach((m, i) => {
+      if (orderRef.current.includes(i)) return
+      const angle = rand(0, Math.PI * 2)
+      const speed = rand(7, 17)
+      m.vx = Math.cos(angle) * speed
+      m.vy = Math.sin(angle) * speed
+    })
   }
 
   const picked = (id) => order.includes(id)
