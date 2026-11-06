@@ -72,6 +72,7 @@
 }
 
 .app__main {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -237,6 +238,70 @@
   line-height: 1.75;
   letter-spacing: 0.03em;
   max-width: 76ch;
+}
+
+/* ------------------------------------------------------------------
+   Scan overlay
+   ------------------------------------------------------------------ */
+.scan {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  animation: fade-in 0.25s var(--ease-clinical) both;
+}
+
+.scan__box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(440px, 82%);
+}
+
+.scan__line {
+  min-height: 18px;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.scan__bar {
+  position: relative;
+  height: 1px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.scan__bar i {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation-name: scan-fill;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes scan-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.scan__foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-45);
 }
 
 /* ------------------------------------------------------------------

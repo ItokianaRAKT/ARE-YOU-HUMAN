@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import './styles/challenges.css'
 import VerdictBar from './components/VerdictBar.jsx'
 import GrantedScreen from './components/GrantedScreen.jsx'
+import ScanOverlay from './components/ScanOverlay.jsx'
 import { challenges } from './challenges/registry.js'
 import { pickOther } from './lib/random.js'
 import { createAmbientDrone } from './lib/ambient.js'
 
 const MAX_ATTEMPTS = 3
+const SCAN_FULL_MS = 2400
+const SCAN_SHORT_MS = 1300
 
 function makeSessionId() {
   const hex = '0123456789ABCDEF'
@@ -29,8 +32,27 @@ function App() {
   const [verdict, setVerdict] = useState(null)
   const [attempt, setAttempt] = useState(1)
   const [granted, setGranted] = useState(false)
+  const [scan, setScan] = useState({ active: true, full: true })
+  const scanTimerRef = useRef(null)
 
   useEffect(() => () => audio.stop(), [audio])
+
+  useEffect(() => {
+    scanTimerRef.current = window.setTimeout(
+      () => setScan((prev) => ({ ...prev, active: false })),
+      SCAN_FULL_MS,
+    )
+    return () => window.clearTimeout(scanTimerRef.current)
+  }, [])
+
+  const startScan = useCallback((full) => {
+    window.clearTimeout(scanTimerRef.current)
+    setScan({ active: true, full })
+    scanTimerRef.current = window.setTimeout(
+      () => setScan((prev) => ({ ...prev, active: false })),
+      full ? SCAN_FULL_MS : SCAN_SHORT_MS,
+    )
+  }, [])
 
   const toggleAudio = useCallback(() => {
     setAudioOn(audio.toggle())
@@ -49,7 +71,8 @@ function App() {
     setVerdict(null)
     setAttempt((prev) => prev + 1)
     setCurrent((prev) => pickOther(challenges, prev))
-  }, [attempt])
+    startScan(false)
+  }, [attempt, startScan])
 
   const handleRestart = useCallback(() => {
     setGranted(false)
@@ -90,6 +113,14 @@ function App() {
       </div>
 
       <main className="app__main">
+        {scan.active ? (
+          <ScanOverlay
+            full={scan.full}
+            duration={scan.full ? SCAN_FULL_MS : SCAN_SHORT_MS}
+            sessionId={sessionId}
+          />
+        ) : null}
+
         {granted ? (
           <GrantedScreen attempts={MAX_ATTEMPTS} onRestart={handleRestart} />
         ) : (
