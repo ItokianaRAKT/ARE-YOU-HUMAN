@@ -213,3 +213,36 @@
   text-align: right;
   word-break: break-all;
 }
+
+/* --- 05 breathing ------------------------------------------------ */
+.breath__circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 320px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.breath__circle::before {
+  content: '';
+  position: absolute;
+  inset: 24%;
+  border: 1px dashed var(--ink-25);
+  border-radius: 50%;
+}
+
+.breath__circle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+}
