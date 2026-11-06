@@ -6,6 +6,9 @@ import { rand, randInt } from '../lib/random.js'
 const INSTRUCTION =
   'Cliquez sur les taches dans l’ordre décroissant de leur niveau de menace perçu.'
 
+const FINAL_MESSAGE =
+  'Classement transmis. Rejet : les menaces perçues ont changé pendant votre analyse. Aucun ordre n’est resté valide plus de 0,3 s. Rejet de l’épreuve 04.'
+
 const COUNT = 12
 const MARGIN = 40
 const TONES = ['var(--ink)', '#1e1e1e', '#424242']
@@ -45,14 +48,24 @@ function makeMotion(count, width, height) {
   })
 }
 
-export function ObsessionChallenge() {
+export function ObsessionChallenge({ onReject }) {
   const stageRef = useRef(null)
   const cellRefs = useRef([])
   const motionRef = useRef([])
   const orderRef = useRef([])
+  const phaseRef = useRef('idle')
+  const timerRef = useRef(null)
   const [blots, setBlots] = useState(makeBlots)
   const [order, setOrder] = useState([])
   const [ready, setReady] = useState(false)
+  const [phase, setPhase] = useState('idle')
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) window.clearTimeout(timerRef.current)
+    },
+    [],
+  )
 
   useEffect(() => {
     const stage = stageRef.current
@@ -78,23 +91,26 @@ export function ObsessionChallenge() {
     const loop = (now) => {
       const dt = Math.min(now - last, 50)
       last = now
+      const frozen = phaseRef.current !== 'idle'
       const motion = motionRef.current
       motion.forEach((m, i) => {
-        m.x += (m.vx * dt) / 1000
-        m.y += (m.vy * dt) / 1000
-        if (m.x < MARGIN) {
-          m.x = MARGIN
-          m.vx = Math.abs(m.vx)
-        } else if (m.x > width - MARGIN) {
-          m.x = Math.max(width - MARGIN, MARGIN)
-          m.vx = -Math.abs(m.vx)
-        }
-        if (m.y < MARGIN) {
-          m.y = MARGIN
-          m.vy = Math.abs(m.vy)
-        } else if (m.y > height - MARGIN) {
-          m.y = Math.max(height - MARGIN, MARGIN)
-          m.vy = -Math.abs(m.vy)
+        if (!frozen) {
+          m.x += (m.vx * dt) / 1000
+          m.y += (m.vy * dt) / 1000
+          if (m.x < MARGIN) {
+            m.x = MARGIN
+            m.vx = Math.abs(m.vx)
+          } else if (m.x > width - MARGIN) {
+            m.x = Math.max(width - MARGIN, MARGIN)
+            m.vx = -Math.abs(m.vx)
+          }
+          if (m.y < MARGIN) {
+            m.y = MARGIN
+            m.vy = Math.abs(m.vy)
+          } else if (m.y > height - MARGIN) {
+            m.y = Math.max(height - MARGIN, MARGIN)
+            m.vy = -Math.abs(m.vy)
+          }
         }
         const cell = cellRefs.current[i]
         if (cell) {
@@ -113,6 +129,7 @@ export function ObsessionChallenge() {
   }, [blots])
 
   const handlePick = (id) => {
+    if (phaseRef.current !== 'idle') return
     if (orderRef.current.includes(id)) return
     orderRef.current.push(id)
     setOrder([...orderRef.current])
@@ -128,6 +145,12 @@ export function ObsessionChallenge() {
       m.vx = Math.cos(angle) * speed
       m.vy = Math.sin(angle) * speed
     })
+
+    if (orderRef.current.length === COUNT) {
+      phaseRef.current = 'analyzing'
+      setPhase('analyzing')
+      timerRef.current = window.setTimeout(() => onReject(FINAL_MESSAGE), 1600)
+    }
   }
 
   const picked = (id) => order.includes(id)
@@ -156,6 +179,12 @@ export function ObsessionChallenge() {
           <div className="status-row">
             <span className="label">Ordre</span>
             <span className="status-value obsession__order">{orderText}</span>
+          </div>
+          <div className="status-row">
+            <span className="label">État</span>
+            <span className="status-value">
+              {phase === 'idle' ? 'Tri manuel' : 'Transmission…'}
+            </span>
           </div>
         </>
       }
@@ -198,6 +227,9 @@ export function ObsessionChallenge() {
             ) : null}
           </button>
         ))}
+        {phase === 'analyzing' ? (
+          <p className="stage-note">Transmission du classement…</p>
+        ) : null}
       </div>
     </ChallengeShell>
   )
