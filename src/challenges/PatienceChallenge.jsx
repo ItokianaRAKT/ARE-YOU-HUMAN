@@ -95,6 +95,7 @@ export function PatienceChallenge({ onReject }) {
     let strikeCount = 0
     let splitActive = false
     let stopped = false
+    let cooldownUntil = 0
 
     const flash = (text) => {
       if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
@@ -121,6 +122,7 @@ export function PatienceChallenge({ onReject }) {
 
     const react = (state, pointer, now, w, h) => {
       state.hold = 0
+      cooldownUntil = now + 750
       const [x, y] = escapeFrom(pointer, w, h)
       state.x = x
       state.y = y
@@ -177,7 +179,7 @@ export function PatienceChallenge({ onReject }) {
           d = Math.min(d, Math.hypot(pointer.x - gx, pointer.y - gy))
         }
 
-        if (pointer.inside && d < APPROACH_RADIUS) {
+        if (pointer.inside && d < APPROACH_RADIUS && now >= cooldownUntil) {
           react(state, pointer, now, width, height)
         }
         if (pointer.inside && d < HOLD_RADIUS) {

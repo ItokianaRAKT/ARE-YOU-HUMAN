@@ -90,6 +90,7 @@ export function BreathingChallenge({ onReject }) {
     let lostIndex = 0
     let fastIndex = 0
     let stopped = false
+    let graceUntil = 0
 
     const flash = (text) => {
       if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
@@ -105,6 +106,8 @@ export function BreathingChallenge({ onReject }) {
       setStrikes(strikeCount)
       cycleCount = 0
       setCycles(0)
+      pointerRef.current.speed = 0
+      graceUntil = performance.now() + 850
       if (strikeCount >= 3) {
         stopped = true
         onReject(FINAL_MESSAGE)
@@ -161,21 +164,25 @@ export function BreathingChallenge({ onReject }) {
 
         // Pointer discipline: stay inside, never move like a machine.
         const pointer = pointerRef.current
-        if (pointer.inside) {
-          const d = Math.hypot(pointer.x - state.x, pointer.y - state.y)
-          const radius = 160 * scale
-          if (!pointer.wasInside) {
-            pointer.wasInside = true
-          } else if (d > radius) {
+        if (now >= graceUntil) {
+          if (pointer.inside) {
+            const d = Math.hypot(pointer.x - state.x, pointer.y - state.y)
+            const radius = 160 * scale
+            if (d <= radius) {
+              if (!pointer.wasInside) {
+                pointer.wasInside = true
+              } else if (pointer.speed > 150 && now - pointer.speedAt < 220) {
+                strike(FAST_MESSAGES[fastIndex % FAST_MESSAGES.length])
+                fastIndex += 1
+              }
+            } else if (pointer.wasInside) {
+              pointer.wasInside = false
+              strike(LOST_MESSAGES[lostIndex % LOST_MESSAGES.length])
+              lostIndex += 1
+            }
+          } else {
             pointer.wasInside = false
-            strike(LOST_MESSAGES[lostIndex % LOST_MESSAGES.length])
-            lostIndex += 1
-          } else if (pointer.speed > 150 && now - pointer.speedAt < 220) {
-            strike(FAST_MESSAGES[fastIndex % FAST_MESSAGES.length])
-            fastIndex += 1
           }
-        } else {
-          pointer.wasInside = false
         }
 
         if (meterRef.current) {
