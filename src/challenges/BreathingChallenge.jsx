@@ -7,12 +7,37 @@ const INSTRUCTION =
 
 const CYCLES_TOTAL = 3
 
+const LOST_MESSAGES = [
+  'Synchronisation respiratoire perdue. Recommencez.',
+  'Le cercle a quitté votre pointeur. Recommencez.',
+  'Dérive posturale détectée : le cycle repart à zéro.',
+]
+
+const FAST_MESSAGES = [
+  'Mouvement trop sec : variabilité inhumaine. Recommencez.',
+  'Votre pointeur a accéléré au-delà du seuil humain. Recommencez.',
+  'Micro-rafale motrice détectée. Recommencez.',
+]
+
 export function BreathingChallenge() {
   const stageRef = useRef(null)
   const circleRef = useRef(null)
   const phaseValueRef = useRef(null)
   const meterRef = useRef(null)
+  const pointerRef = useRef({
+    x: -9999,
+    y: -9999,
+    inside: false,
+    wasInside: false,
+    speed: 0,
+    speedAt: 0,
+    movedAt: 0,
+  })
+  const noteTimerRef = useRef(null)
+  const noteSeqRef = useRef(0)
   const [cycles, setCycles] = useState(0)
+  const [strikes, setStrikes] = useState(0)
+  const [note, setNote] = useState(null)
   const stateRef = useRef({
     x: 0,
     y: 0,
@@ -55,6 +80,24 @@ export function BreathingChallenge() {
     let raf = 0
     let last = performance.now()
     let cycleCount = 0
+    let strikeCount = 0
+    let lostIndex = 0
+    let fastIndex = 0
+
+    const flash = (text) => {
+      if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
+      noteSeqRef.current += 1
+      setNote({ id: noteSeqRef.current, text })
+      noteTimerRef.current = window.setTimeout(() => setNote(null), 3000)
+    }
+
+    const strike = (text) => {
+      flash(text)
+      strikeCount += 1
+      setStrikes(strikeCount)
+      cycleCount = 0
+      setCycles(0)
+    }
 
     const loop = (now) => {
       const dt = Math.min(now - last, 50)
@@ -68,9 +111,14 @@ export function BreathingChallenge() {
         if (state.breath >= 1) {
           state.breath -= 1
           state.period = rand(5200, 8200)
-          cycleCount += 1
-          setCycles(Math.min(cycleCount, CYCLES_TOTAL))
+          if (pointerRef.current.wasInside) {
+            cycleCount += 1
+            setCycles(Math.min(cycleCount, CYCLES_TOTAL))
+          }
         }
+
+        const scale =
+          0.66 + 0.34 * ((1 - Math.cos(state.breath * Math.PI * 2)) / 2)
 
         // Drift with occasional jerks.
         if (now >= state.nextTargetAt) {
@@ -89,19 +137,38 @@ export function BreathingChallenge() {
         const dy = state.ty - state.y
         const dist = Math.hypot(dx, dy) || 1
         const speed = now < state.jerkUntil ? 92 : 11
-        state.x += (dx / dist) * (speed * dt) / 1000
-        state.y += (dy / dist) * (speed * dt) / 1000
+        state.x += ((dx / dist) * (speed * dt)) / 1000
+        state.y += ((dy / dist) * (speed * dt)) / 1000
 
-        const scale = 0.66 + 0.34 * ((1 - Math.cos(state.breath * Math.PI * 2)) / 2)
         circle.style.transform = `translate3d(${state.x - 160}px, ${state.y - 160}px, 0) scale(${scale.toFixed(4)})`
+
+        // Pointer discipline: stay inside, never move like a machine.
+        const pointer = pointerRef.current
+        if (pointer.inside) {
+          const d = Math.hypot(pointer.x - state.x, pointer.y - state.y)
+          const radius = 160 * scale
+          if (!pointer.wasInside) {
+            pointer.wasInside = true
+          } else if (d > radius) {
+            pointer.wasInside = false
+            strike(LOST_MESSAGES[lostIndex % LOST_MESSAGES.length])
+            lostIndex += 1
+          } else if (pointer.speed > 150 && now - pointer.speedAt < 220) {
+            strike(FAST_MESSAGES[fastIndex % FAST_MESSAGES.length])
+            fastIndex += 1
+          }
+        } else {
+          pointer.wasInside = false
+        }
 
         if (meterRef.current) {
           meterRef.current.style.transform = `scaleX(${state.breath.toFixed(3)})`
         }
         if (phaseValueRef.current) {
-          const inhaling =
-            Math.sin(state.breath * Math.PI * 2) >= 0
-          phaseValueRef.current.textContent = inhaling ? 'Inspiration' : 'Expiration'
+          const inhaling = Math.sin(state.breath * Math.PI * 2) >= 0
+          phaseValueRef.current.textContent = inhaling
+            ? 'Inspiration'
+            : 'Expiration'
         }
       }
 
@@ -112,8 +179,37 @@ export function BreathingChallenge() {
     return () => {
       cancelAnimationFrame(raf)
       observer.disconnect()
+      if (noteTimerRef.current) window.clearTimeout(noteTimerRef.current)
     }
   }, [])
+
+  const handlePointerMove = (event) => {
+    const stage = stageRef.current
+    if (!stage) return
+    const rect = stage.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    const pointer = pointerRef.current
+    const now = performance.now()
+    if (pointer.x > -9000) {
+      const dt = Math.max(now - pointer.movedAt, 1)
+      pointer.speed = (Math.hypot(x - pointer.x, y - pointer.y) / dt) * 1000
+      pointer.speedAt = now
+    }
+    pointer.x = x
+    pointer.y = y
+    pointer.inside = true
+    pointer.movedAt = now
+  }
+
+  const handlePointerLeave = () => {
+    const pointer = pointerRef.current
+    pointer.inside = false
+    pointer.wasInside = false
+    pointer.x = -9999
+    pointer.y = -9999
+    pointer.speed = 0
+  }
 
   return (
     <ChallengeShell
@@ -138,14 +234,28 @@ export function BreathingChallenge() {
             </span>
           </div>
           <div className="status-row">
-            <span className="label">Perdre le rythme</span>
-            <span className="status-value">Réinitialise tout</span>
+            <span className="label">Réactions</span>
+            <span className="strikes" aria-label={`${strikes} réaction(s)`}>
+              {[0, 1, 2].map((i) => (
+                <i key={i} className={i < strikes ? 'on' : ''} />
+              ))}
+            </span>
           </div>
         </>
       }
     >
-      <div className="stage breathing" ref={stageRef}>
+      <div
+        className="stage breathing"
+        ref={stageRef}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+      >
         <div className="breath__circle" ref={circleRef} />
+        {note ? (
+          <p className="stage-note" key={note.id}>
+            {note.text}
+          </p>
+        ) : null}
       </div>
     </ChallengeShell>
   )
