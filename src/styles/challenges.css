@@ -178,3 +178,38 @@
   justify-content: flex-end;
   gap: 12px;
 }
+
+/* --- 04 obsession sort ------------------------------------------- */
+.ink-cell {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: crosshair;
+  will-change: transform;
+}
+
+.ink-cell svg {
+  display: block;
+}
+
+.ink-cell__rank {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.obsession__order {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-align: right;
+  word-break: break-all;
+}
