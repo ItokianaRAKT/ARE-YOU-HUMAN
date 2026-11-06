@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 import './styles/challenges.css'
 import VerdictBar from './components/VerdictBar.jsx'
+import GrantedScreen from './components/GrantedScreen.jsx'
 import { challenges } from './challenges/registry.js'
 import { pickOther } from './lib/random.js'
 import { createAmbientDrone } from './lib/ambient.js'
+
+const MAX_ATTEMPTS = 3
 
 function makeSessionId() {
   const hex = '0123456789ABCDEF'
@@ -24,6 +27,8 @@ function App() {
     challenges.length ? pickOther(challenges, null) : null,
   )
   const [verdict, setVerdict] = useState(null)
+  const [attempt, setAttempt] = useState(1)
+  const [granted, setGranted] = useState(false)
 
   useEffect(() => () => audio.stop(), [audio])
 
@@ -35,9 +40,22 @@ function App() {
     setVerdict(message)
   }, [])
 
-  const handleRetry = useCallback(() => {
+  const handleAdvance = useCallback(() => {
+    if (attempt >= MAX_ATTEMPTS) {
+      setVerdict(null)
+      setGranted(true)
+      return
+    }
     setVerdict(null)
+    setAttempt((prev) => prev + 1)
     setCurrent((prev) => pickOther(challenges, prev))
+  }, [attempt])
+
+  const handleRestart = useCallback(() => {
+    setGranted(false)
+    setVerdict(null)
+    setAttempt(1)
+    setCurrent(() => (challenges.length ? pickOther(challenges, null) : null))
   }, [])
 
   const ActiveChallenge = current ? current.Component : null
@@ -61,22 +79,48 @@ function App() {
 
       <div className="app__statusbar mono">
         <span>Passerelle sécurisée</span>
-        <span>Nœud 04 — Genève</span>
-        <span>Connexion chiffrée</span>
+        <span className="app__attempt">
+          Tentative {String(attempt).padStart(2, '0')} / 03
+        </span>
+        <span>
+          {granted
+            ? 'Vérification close'
+            : `Épreuve ${current ? current.index : '—'} / 05`}
+        </span>
       </div>
 
       <main className="app__main">
-        {ActiveChallenge ? (
-          <div className="app__challenge" key={current.id}>
-            <ActiveChallenge onReject={handleReject} />
-          </div>
+        {granted ? (
+          <GrantedScreen attempts={MAX_ATTEMPTS} onRestart={handleRestart} />
         ) : (
-          <p className="app__placeholder label">
-            Aucune épreuve assignée à cette session
-          </p>
-        )}
+          <>
+            {ActiveChallenge ? (
+              <div
+                className="app__challenge"
+                key={current.id}
+                data-rejected={verdict ? '' : undefined}
+              >
+                <ActiveChallenge onReject={handleReject} />
+              </div>
+            ) : (
+              <p className="app__placeholder label">
+                Aucune épreuve assignée à cette session
+              </p>
+            )}
 
-        {verdict ? <VerdictBar message={verdict} onRetry={handleRetry} /> : null}
+            {verdict ? (
+              <VerdictBar
+                message={verdict}
+                onRetry={handleAdvance}
+                actionLabel={
+                  attempt >= MAX_ATTEMPTS
+                    ? 'Procéder à la vérification'
+                    : 'Nouvelle épreuve'
+                }
+              />
+            ) : null}
+          </>
+        )}
       </main>
 
       <footer className="app__footer mono">
