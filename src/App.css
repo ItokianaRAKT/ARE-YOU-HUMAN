@@ -103,6 +103,13 @@
   flex: 1;
   display: flex;
   animation: rise-in 0.6s var(--ease-organic) both;
+  transition: opacity 0.5s var(--ease-clinical);
+}
+
+.app__challenge[data-rejected] {
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
 }
 
 .app__challenge > .challenge {
@@ -385,12 +392,67 @@
     margin-top: var(--space-2);
   }
 
-  .app__statusbar span:nth-child(2) {
+  .challenge__stage {
+    min-height: 52vh;
+  }
+
+  .app__statusbar span:first-child,
+  .app__footer span:nth-child(2) {
     display: none;
+  }
+
+  .app__header {
+    padding: 16px var(--space-2);
+  }
+
+  .app__statusbar,
+  .app__footer {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
   }
 
   .verdict {
     grid-template-columns: 1fr;
     gap: var(--space-2);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .granted {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .alignment {
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .symmetry {
+    grid-template-columns: 1fr;
+  }
+
+  .symmetry__panel--ref {
+    border-right: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .symmetry__figure {
+    justify-content: center;
+  }
+
+  .symmetry__figure svg {
+    max-height: 30vh;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Reduced motion
+   ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
