@@ -246,3 +246,14 @@
   border: 1px solid var(--ink);
   border-radius: 50%;
 }
+
+/* --- 06 captcha widget ------------------------------------------- */
+.captcha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-3);
+  overflow-y: auto;
+  touch-action: auto;
+  user-select: auto;
+}
