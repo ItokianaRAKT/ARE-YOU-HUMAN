@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import ChallengeShell from '../components/ChallengeShell.jsx'
+import { CAPTCHA_MODES, MODE_TOTAL, pickCaptchaMode } from './modes.js'
 
 const VERIFY_MS = 1600
+const AUTO_FAIL_MS = 900
 
 const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
@@ -124,23 +126,51 @@ function FailureBlock({ detail }) {
 
 export function CaptchaWidget() {
   const [status, setStatus] = useState('idle')
+  const [mode, setMode] = useState(() => pickCaptchaMode())
+  const [attemptKey, setAttemptKey] = useState(0)
+  const [failures, setFailures] = useState(0)
+  const [tried, setTried] = useState([])
   const timerRef = useRef(null)
 
   useEffect(() => () => window.clearTimeout(timerRef.current), [])
 
+  const registerFailure = () => {
+    setFailures((count) => count + 1)
+    setTried((ids) => (mode && !ids.includes(mode.id) ? [...ids, mode.id] : ids))
+  }
+
+  const scheduleFailure = (delay) => {
+    window.clearTimeout(timerRef.current)
+    timerRef.current = window.setTimeout(() => {
+      setStatus('failed')
+      registerFailure()
+    }, delay)
+  }
+
   const handleVerify = () => {
     if (status !== 'idle') return
     setStatus('verifying')
-    timerRef.current = window.setTimeout(() => setStatus('failed'), VERIFY_MS)
+    scheduleFailure(VERIFY_MS)
+  }
+
+  const handleAutoFail = () => {
+    if (status !== 'idle') return
+    setStatus('verifying')
+    scheduleFailure(AUTO_FAIL_MS)
   }
 
   const handleRetry = () => {
     window.clearTimeout(timerRef.current)
+    setMode(pickCaptchaMode(mode ? mode.id : null, tried))
+    setAttemptKey((key) => key + 1)
     setStatus('idle')
   }
 
   const stateLabel =
     status === 'failed' ? 'Échec' : status === 'verifying' ? 'Vérification…' : 'En attente'
+  const modeNumber = mode ? CAPTCHA_MODES.indexOf(mode) + 1 : 0
+  const meterPct =
+    MODE_TOTAL > 0 ? Math.min(100, Math.round((failures / MODE_TOTAL) * 100)) : 0
 
   return (
     <ChallengeShell
@@ -151,11 +181,22 @@ export function CaptchaWidget() {
         <>
           <div className="status-row">
             <span className="label">Mode</span>
-            <span className="status-value">— / 04</span>
+            <span className="status-value">
+              {mode ? String(modeNumber).padStart(2, '0') : '—'} / {String(MODE_TOTAL).padStart(2, '0')}
+            </span>
           </div>
           <div className="status-row">
             <span className="label">Échecs</span>
-            <span className="status-value">00</span>
+            <span className="status-value">{String(failures).padStart(2, '0')}</span>
+            <span
+              className="mt-1 block h-0.5 w-full bg-slate-200"
+              role="presentation"
+            >
+              <span
+                className="block h-full bg-red-500 transition-all"
+                style={{ width: `${meterPct}%` }}
+              />
+            </span>
           </div>
           <div className="status-row">
             <span className="label">État</span>
@@ -185,10 +226,19 @@ export function CaptchaWidget() {
             {status === 'failed' ? (
               <FailureBlock detail={FAILURE_DETAIL} />
             ) : (
-              <div className="flex min-h-[180px] flex-col justify-center gap-2">
-                <p className="text-[13px] text-slate-600">
-                  Protocole en attente d’affectation…
+              <div className="flex min-h-[180px] flex-col justify-center gap-3">
+                <p className="text-[13px] font-semibold leading-snug text-slate-800">
+                  {mode
+                    ? mode.prompt
+                    : 'Protocole en attente d’affectation…'}
                 </p>
+                {mode ? (
+                  <mode.Component
+                    key={attemptKey}
+                    disabled={status !== 'idle'}
+                    onAutoFail={handleAutoFail}
+                  />
+                ) : null}
               </div>
             )}
             {status === 'verifying' ? <VerifyOverlay /> : null}
