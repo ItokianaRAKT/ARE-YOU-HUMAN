@@ -4,7 +4,7 @@ export function ChallengeShell({ index, title, instruction, status, children }) 
       <aside className="challenge__meta">
         <div className="challenge__block">
           <span className="label">Épreuve</span>
-          <span className="challenge__index">{index} / 05</span>
+          <span className="challenge__index">{index} / 06</span>
         </div>
 
         <div className="challenge__block">

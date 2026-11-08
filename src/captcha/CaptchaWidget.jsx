@@ -8,6 +8,9 @@ const AUTO_FAIL_MS = 900
 const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
 
+const REJECT_MESSAGE =
+  'Quatre protocoles de sécurité enchaînés sans jamais varier. Aucun humain ne recommence quatre fois la même chose. Rejet de l’épreuve 06.'
+
 function ShieldMark() {
   return (
     <svg
@@ -124,7 +127,7 @@ function FailureBlock({ detail }) {
   )
 }
 
-export function CaptchaWidget() {
+export function CaptchaWidget({ onReject }) {
   const [status, setStatus] = useState('idle')
   const [mode, setMode] = useState(() => pickCaptchaMode())
   const [attemptKey, setAttemptKey] = useState(0)
@@ -161,6 +164,10 @@ export function CaptchaWidget() {
 
   const handleRetry = () => {
     window.clearTimeout(timerRef.current)
+    if (CAPTCHA_MODES.length > 0 && tried.length >= CAPTCHA_MODES.length) {
+      if (typeof onReject === 'function') onReject(REJECT_MESSAGE)
+      return
+    }
     setMode(pickCaptchaMode(mode ? mode.id : null, tried))
     setAttemptKey((key) => key + 1)
     setStatus('idle')
