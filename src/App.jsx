@@ -7,7 +7,7 @@ import ScanOverlay from './components/ScanOverlay.jsx'
 import { challenges } from './challenges/registry.js'
 import { createAmbientDrone } from './lib/ambient.js'
 
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 1
 const SCAN_FULL_MS = 2400
 const SCAN_SHORT_MS = 1300
 
@@ -98,7 +98,7 @@ function App() {
       <div className="app__statusbar mono">
         <span>Passerelle sécurisée</span>
         <span className="app__attempt">
-          Tentative {String(attempt).padStart(2, '0')} / 03
+          Tentative {String(attempt).padStart(2, '0')} / 01
         </span>
         <span>
           {granted
