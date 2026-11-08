@@ -8,6 +8,13 @@ const AUTO_FAIL_MS = 900
 const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
 
+const FAILURE_LINES = [
+  'Signalement confirmé : cette session ne correspond à aucun profil humain. Recommencez.',
+  'Le contrôle de sécurité a rejeté votre empreinte. Une nouvelle tentative est requise.',
+  'Anomalie persistante relevée sur la session. La vérification doit être relancée.',
+  'Vos réactions dépassent le seuil humain autorisé. Veuillez recommencer.',
+]
+
 function ShieldMark() {
   return (
     <svg
@@ -103,6 +110,10 @@ function VerifyOverlay() {
 }
 
 function FailureBlock({ detail }) {
+  const [line] = useState(
+    () => FAILURE_LINES[Math.floor(Math.random() * FAILURE_LINES.length)],
+  )
+
   return (
     <div
       className="flex min-h-[190px] flex-col items-center justify-center gap-2 px-4 py-5 text-center"
@@ -115,7 +126,7 @@ function FailureBlock({ detail }) {
         Échec. Réessayez.
       </p>
       <p className="max-w-[36ch] text-[13px] leading-relaxed text-slate-700">
-        Une action louche a été détectée sur ce dispositif. Veuillez réessayer.
+        {line}
       </p>
       <p className="font-mono text-[10px] tracking-wide text-slate-400">
         {detail}

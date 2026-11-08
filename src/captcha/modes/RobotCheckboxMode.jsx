@@ -3,6 +3,25 @@ import { useEffect, useRef, useState } from 'react'
 const CHECK_DELAY_MS = 1000
 const REPORT_DELAY_MS = 1200
 
+/**
+ * Escape vectors: every attempt picks a fresh direction and distance so
+ * the checkbox never flees the same way twice.
+ */
+const DODGES = [
+  { x: 92, y: -8, r: -6 },
+  { x: 58, y: 13, r: 5 },
+  { x: -10, y: -12, r: 8 },
+  { x: 34, y: -14, r: -9 },
+  { x: -10, y: 13, r: -7 },
+  { x: 74, y: 8, r: 3 },
+  { x: 46, y: -12, r: 7 },
+  { x: 20, y: 14, r: -5 },
+  { x: 95, y: 0, r: 6 },
+  { x: -8, y: -14, r: -4 },
+  { x: 66, y: -13, r: 9 },
+  { x: 15, y: -11, r: 4 },
+]
+
 function BoxMark({ phase }) {
   if (phase === 'caught') {
     return (
@@ -23,6 +42,9 @@ function BoxMark({ phase }) {
 
 export function RobotCheckboxMode({ disabled = false, onAutoFail }) {
   const [dodged, setDodged] = useState(false)
+  const [dodge] = useState(
+    () => DODGES[Math.floor(Math.random() * DODGES.length)],
+  )
   const [phase, setPhase] = useState('idle')
   const checkTimerRef = useRef(null)
   const reportTimerRef = useRef(null)
@@ -77,9 +99,12 @@ export function RobotCheckboxMode({ disabled = false, onAutoFail }) {
               onFocus={handleApproach}
               onClick={handleClick}
               disabled={disabled}
-              className={`flex h-7 w-7 items-center justify-center rounded-sm border-2 transition-transform duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${boxTone} ${
-                dodged ? 'translate-x-[46px] -translate-y-2 rotate-[-4deg]' : ''
-              }`}
+              className={`flex h-7 w-7 items-center justify-center rounded-sm border-2 transition-transform duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${boxTone}`}
+              style={{
+                transform: dodged
+                  ? `translate(${dodge.x}px, ${dodge.y}px) rotate(${dodge.r}deg)`
+                  : 'translate(0, 0) rotate(0deg)',
+              }}
             >
               <BoxMark phase={phase} />
             </button>
