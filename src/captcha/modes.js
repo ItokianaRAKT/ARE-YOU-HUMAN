@@ -1,6 +1,7 @@
 import ImageSelectMode from './modes/ImageSelectMode.jsx'
 import PuzzleSliderMode from './modes/PuzzleSliderMode.jsx'
 import RobotCheckboxMode from './modes/RobotCheckboxMode.jsx'
+import ObjectRotationMode from './modes/ObjectRotationMode.jsx'
 
 /**
  * Modes exposed by the sentinel widget. Entries are appended by the
@@ -24,6 +25,12 @@ export const CAPTCHA_MODES = [
     label: 'Case robot',
     prompt: 'Étape 1 — déclaration d’identité.',
     Component: RobotCheckboxMode,
+  },
+  {
+    id: 'object-rotation',
+    label: 'Rotation d’objet',
+    prompt: 'Étape 1 — orientation magnétique.',
+    Component: ObjectRotationMode,
   },
 ]
 
