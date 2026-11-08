@@ -1,12 +1,7 @@
-export function ChallengeShell({ index, title, instruction, status, children }) {
+export function ChallengeShell({ title, instruction, status, children }) {
   return (
     <section className="challenge">
       <aside className="challenge__meta">
-        <div className="challenge__block">
-          <span className="label">Épreuve</span>
-          <span className="challenge__index">{index} / 01</span>
-        </div>
-
         <div className="challenge__block">
           <span className="label">Protocole</span>
           <h2 className="challenge__title">{title}</h2>
