@@ -1,4 +1,5 @@
 import ImageSelectMode from './modes/ImageSelectMode.jsx'
+import PuzzleSliderMode from './modes/PuzzleSliderMode.jsx'
 
 /**
  * Modes exposed by the sentinel widget. Entries are appended by the
@@ -10,6 +11,12 @@ export const CAPTCHA_MODES = [
     label: 'Sélection d’images',
     prompt: 'Étape 1 — identification visuelle.',
     Component: ImageSelectMode,
+  },
+  {
+    id: 'puzzle-slider',
+    label: 'Slider puzzle',
+    prompt: 'Étape 1 — validation géométrique.',
+    Component: PuzzleSliderMode,
   },
 ]
 
