@@ -105,7 +105,7 @@ function VerifyOverlay() {
   )
 }
 
-function FailureBlock({ detail }) {
+function FailureBlock({ detail, attempt, total }) {
   return (
     <div
       className="flex min-h-[190px] flex-col items-center justify-center gap-2 px-4 py-5 text-center"
@@ -119,6 +119,9 @@ function FailureBlock({ detail }) {
       </p>
       <p className="max-w-[36ch] text-[13px] leading-relaxed text-slate-700">
         Une action louche a été détectée sur ce dispositif. Veuillez réessayer.
+      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+        Tentative {String(attempt).padStart(2, '0')} / {String(total).padStart(2, '0')}
       </p>
       <p className="font-mono text-[10px] tracking-wide text-slate-400">
         {detail}
@@ -194,15 +197,14 @@ export function CaptchaWidget({ onReject }) {
           </div>
           <div className="status-row">
             <span className="label">Échecs</span>
-            <span className="status-value">{String(failures).padStart(2, '0')}</span>
-            <span
-              className="mt-1 block h-0.5 w-full bg-slate-200"
-              role="presentation"
-            >
-              <span
-                className="block h-full bg-red-500 transition-all"
-                style={{ width: `${meterPct}%` }}
-              />
+            <span className="status-value flex flex-col items-end gap-1">
+              <span>{String(failures).padStart(2, '0')}</span>
+              <span className="block h-0.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                <span
+                  className="block h-full bg-red-500 transition-all"
+                  style={{ width: `${meterPct}%` }}
+                />
+              </span>
             </span>
           </div>
           <div className="status-row">
@@ -231,7 +233,11 @@ export function CaptchaWidget({ onReject }) {
 
           <div className="relative min-h-[190px] px-4 py-5">
             {status === 'failed' ? (
-              <FailureBlock detail={FAILURE_DETAIL} />
+              <FailureBlock
+                detail={FAILURE_DETAIL}
+                attempt={failures}
+                total={MODE_TOTAL}
+              />
             ) : (
               <div className="flex min-h-[180px] flex-col justify-center gap-3">
                 <p className="text-[13px] font-semibold leading-snug text-slate-800">
