@@ -91,7 +91,6 @@ export function ImageSelectMode({ disabled = false }) {
       </div>
 
       <div className="flex items-center justify-between gap-2 text-[10px] uppercase tracking-wider text-slate-500">
-        <span>Sélection : {String(picked.length).padStart(2, '0')} / 09</span>
         <span>Ordre mélangé à chaque session</span>
       </div>
     </div>

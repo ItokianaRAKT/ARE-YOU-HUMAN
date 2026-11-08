@@ -11,25 +11,25 @@ export const CAPTCHA_MODES = [
   {
     id: 'image-select',
     label: 'Sélection d’images',
-    prompt: 'Étape 1 — identification visuelle.',
+    prompt: 'Contrôle — identification visuelle.',
     Component: ImageSelectMode,
   },
   {
     id: 'puzzle-slider',
     label: 'Slider puzzle',
-    prompt: 'Étape 1 — validation géométrique.',
+    prompt: 'Contrôle — validation géométrique.',
     Component: PuzzleSliderMode,
   },
   {
     id: 'robot-checkbox',
     label: 'Case robot',
-    prompt: 'Étape 1 — déclaration d’identité.',
+    prompt: 'Contrôle — déclaration d’identité.',
     Component: RobotCheckboxMode,
   },
   {
     id: 'object-rotation',
     label: 'Rotation d’objet',
-    prompt: 'Étape 1 — orientation magnétique.',
+    prompt: 'Contrôle — orientation magnétique.',
     Component: ObjectRotationMode,
   },
 ]

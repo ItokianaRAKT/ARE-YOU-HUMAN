@@ -56,7 +56,6 @@ function App() {
 
       <div className="app__statusbar mono">
         <span>Passerelle sécurisée</span>
-        <span className="app__attempt">Tentative 01 / 01</span>
         <span>Vérification en cours</span>
       </div>
 

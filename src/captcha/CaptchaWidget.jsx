@@ -166,7 +166,6 @@ export function CaptchaWidget() {
 
   return (
     <ChallengeShell
-      index="01"
       title="Widget de vérification — sentinelle"
       instruction="Passez la vérification de sécurité présentée ci-contre pour poursuivre votre navigation."
       status={

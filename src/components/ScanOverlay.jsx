@@ -30,7 +30,6 @@ export function ScanOverlay({ duration, sessionId }) {
         </div>
         <div className="scan__foot mono">
           <span>Session {sessionId}</span>
-          <span>01 — 04</span>
         </div>
       </div>
     </div>
