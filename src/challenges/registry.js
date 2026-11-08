@@ -3,12 +3,13 @@ import AlignmentChallenge from './AlignmentChallenge.jsx'
 import SymmetryChallenge from './SymmetryChallenge.jsx'
 import ObsessionChallenge from './ObsessionChallenge.jsx'
 import BreathingChallenge from './BreathingChallenge.jsx'
+import CaptchaWidget from '../captcha/CaptchaWidget.jsx'
 
 /**
  * Registry of available tests. Each branch of the project appends its own
  * protocol here; the gate picks one at random per attempt.
  */
-export const CHALLENGE_TOTAL = 5
+export const CHALLENGE_TOTAL = 6
 
 export const challenges = [
   {
@@ -35,5 +36,10 @@ export const challenges = [
     id: 'breathing',
     index: '05',
     Component: BreathingChallenge,
+  },
+  {
+    id: 'widget',
+    index: '06',
+    Component: CaptchaWidget,
   },
 ]

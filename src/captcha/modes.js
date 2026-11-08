@@ -1,8 +1,38 @@
+import ImageSelectMode from './modes/ImageSelectMode.jsx'
+import PuzzleSliderMode from './modes/PuzzleSliderMode.jsx'
+import RobotCheckboxMode from './modes/RobotCheckboxMode.jsx'
+import ObjectRotationMode from './modes/ObjectRotationMode.jsx'
+
 /**
  * Modes exposed by the sentinel widget. Entries are appended by the
  * mode branches; the widget picks one at random on every reset.
  */
-export const CAPTCHA_MODES = []
+export const CAPTCHA_MODES = [
+  {
+    id: 'image-select',
+    label: 'Sélection d’images',
+    prompt: 'Étape 1 — identification visuelle.',
+    Component: ImageSelectMode,
+  },
+  {
+    id: 'puzzle-slider',
+    label: 'Slider puzzle',
+    prompt: 'Étape 1 — validation géométrique.',
+    Component: PuzzleSliderMode,
+  },
+  {
+    id: 'robot-checkbox',
+    label: 'Case robot',
+    prompt: 'Étape 1 — déclaration d’identité.',
+    Component: RobotCheckboxMode,
+  },
+  {
+    id: 'object-rotation',
+    label: 'Rotation d’objet',
+    prompt: 'Étape 1 — orientation magnétique.',
+    Component: ObjectRotationMode,
+  },
+]
 
 export const MODE_TOTAL = CAPTCHA_MODES.length
 

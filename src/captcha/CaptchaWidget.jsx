@@ -8,6 +8,9 @@ const AUTO_FAIL_MS = 900
 const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
 
+const REJECT_MESSAGE =
+  'Quatre protocoles de sécurité enchaînés sans jamais varier. Aucun humain ne recommence quatre fois la même chose. Rejet de l’épreuve 06.'
+
 function ShieldMark() {
   return (
     <svg
@@ -102,7 +105,7 @@ function VerifyOverlay() {
   )
 }
 
-function FailureBlock({ detail }) {
+function FailureBlock({ detail, attempt, total }) {
   return (
     <div
       className="flex min-h-[190px] flex-col items-center justify-center gap-2 px-4 py-5 text-center"
@@ -117,6 +120,9 @@ function FailureBlock({ detail }) {
       <p className="max-w-[36ch] text-[13px] leading-relaxed text-slate-700">
         Une action louche a été détectée sur ce dispositif. Veuillez réessayer.
       </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
+        Tentative {String(attempt).padStart(2, '0')} / {String(total).padStart(2, '0')}
+      </p>
       <p className="font-mono text-[10px] tracking-wide text-slate-400">
         {detail}
       </p>
@@ -124,15 +130,20 @@ function FailureBlock({ detail }) {
   )
 }
 
-export function CaptchaWidget() {
+export function CaptchaWidget({ onReject }) {
   const [status, setStatus] = useState('idle')
   const [mode, setMode] = useState(() => pickCaptchaMode())
   const [attemptKey, setAttemptKey] = useState(0)
   const [failures, setFailures] = useState(0)
   const [tried, setTried] = useState([])
   const timerRef = useRef(null)
+  const statusRef = useRef('idle')
 
   useEffect(() => () => window.clearTimeout(timerRef.current), [])
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   const registerFailure = () => {
     setFailures((count) => count + 1)
@@ -148,19 +159,23 @@ export function CaptchaWidget() {
   }
 
   const handleVerify = () => {
-    if (status !== 'idle') return
+    if (statusRef.current !== 'idle') return
     setStatus('verifying')
     scheduleFailure(VERIFY_MS)
   }
 
   const handleAutoFail = () => {
-    if (status !== 'idle') return
+    if (statusRef.current !== 'idle') return
     setStatus('verifying')
     scheduleFailure(AUTO_FAIL_MS)
   }
 
   const handleRetry = () => {
     window.clearTimeout(timerRef.current)
+    if (CAPTCHA_MODES.length > 0 && tried.length >= CAPTCHA_MODES.length) {
+      if (typeof onReject === 'function') onReject(REJECT_MESSAGE)
+      return
+    }
     setMode(pickCaptchaMode(mode ? mode.id : null, tried))
     setAttemptKey((key) => key + 1)
     setStatus('idle')
@@ -187,15 +202,14 @@ export function CaptchaWidget() {
           </div>
           <div className="status-row">
             <span className="label">Échecs</span>
-            <span className="status-value">{String(failures).padStart(2, '0')}</span>
-            <span
-              className="mt-1 block h-0.5 w-full bg-slate-200"
-              role="presentation"
-            >
-              <span
-                className="block h-full bg-red-500 transition-all"
-                style={{ width: `${meterPct}%` }}
-              />
+            <span className="status-value flex flex-col items-end gap-1">
+              <span>{String(failures).padStart(2, '0')}</span>
+              <span className="block h-0.5 w-24 overflow-hidden rounded-full bg-slate-200">
+                <span
+                  className="block h-full bg-red-500 transition-all"
+                  style={{ width: `${meterPct}%` }}
+                />
+              </span>
             </span>
           </div>
           <div className="status-row">
@@ -224,7 +238,11 @@ export function CaptchaWidget() {
 
           <div className="relative min-h-[190px] px-4 py-5">
             {status === 'failed' ? (
-              <FailureBlock detail={FAILURE_DETAIL} />
+              <FailureBlock
+                detail={FAILURE_DETAIL}
+                attempt={failures}
+                total={MODE_TOTAL}
+              />
             ) : (
               <div className="flex min-h-[180px] flex-col justify-center gap-3">
                 <p className="text-[13px] font-semibold leading-snug text-slate-800">

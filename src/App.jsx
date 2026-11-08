@@ -108,7 +108,7 @@ function App() {
         <span>
           {granted
             ? 'Vérification close'
-            : `Épreuve ${current ? current.index : '—'} / 05`}
+            : `Épreuve ${current ? current.index : '—'} / 06`}
         </span>
       </div>
 
