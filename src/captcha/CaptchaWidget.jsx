@@ -9,7 +9,7 @@ const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
 
 const REJECT_MESSAGE =
-  'Quatre protocoles de sécurité enchaînés sans jamais varier. Aucun humain ne recommence quatre fois la même chose. Rejet de l’épreuve 06.'
+  'Quatre protocoles de sécurité enchaînés sans jamais varier. Aucun humain ne recommence quatre fois la même chose. Rejet de l’épreuve 01.'
 
 function ShieldMark() {
   return (
@@ -189,7 +189,7 @@ export function CaptchaWidget({ onReject }) {
 
   return (
     <ChallengeShell
-      index="06"
+      index="01"
       title="Widget de vérification — sentinelle"
       instruction="Passez la vérification de sécurité présentée ci-contre pour poursuivre votre navigation."
       status={

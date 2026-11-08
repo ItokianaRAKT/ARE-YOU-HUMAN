@@ -7,9 +7,9 @@ export function GrantedScreen({ attempts, onRestart }) {
         Il n’y a aucun site derrière cette porte.
       </p>
       <p className="granted__body">
-        Vous avez essuyé {attempts} rejets pour arriver ici. Aucun humain
-        n’aurait persisté : le captcha n’était pas la porte, le captcha était
-        le site.
+        Vous avez essuyé {attempts} rejet{attempts > 1 ? 's' : ''} pour arriver
+        ici. Aucun humain n’aurait persisté : le captcha n’était pas la porte,
+        le captcha était le site.
       </p>
 
       <dl className="granted__meta mono">
@@ -19,7 +19,7 @@ export function GrantedScreen({ attempts, onRestart }) {
         </div>
         <div>
           <dt>Épreuves subies</dt>
-          <dd>{String(attempts).padStart(2, '0')} / 03</dd>
+          <dd>{String(attempts).padStart(2, '0')} / 01</dd>
         </div>
         <div>
           <dt>Serveur</dt>

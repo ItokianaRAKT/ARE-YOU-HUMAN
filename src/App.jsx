@@ -5,10 +5,9 @@ import VerdictBar from './components/VerdictBar.jsx'
 import GrantedScreen from './components/GrantedScreen.jsx'
 import ScanOverlay from './components/ScanOverlay.jsx'
 import { challenges } from './challenges/registry.js'
-import { pickOther } from './lib/random.js'
 import { createAmbientDrone } from './lib/ambient.js'
 
-const MAX_ATTEMPTS = 3
+const MAX_ATTEMPTS = 1
 const SCAN_FULL_MS = 2400
 const SCAN_SHORT_MS = 1300
 
@@ -26,9 +25,7 @@ function App() {
   const sessionId = useMemo(() => makeSessionId(), [])
   const audio = useMemo(() => createAmbientDrone(), [])
   const [audioOn, setAudioOn] = useState(false)
-  const [current, setCurrent] = useState(() =>
-    challenges.length ? pickOther(challenges, null) : null,
-  )
+  const current = challenges[0] ?? null
   const [verdict, setVerdict] = useState(null)
   const [attempt, setAttempt] = useState(1)
   const [granted, setGranted] = useState(false)
@@ -70,7 +67,6 @@ function App() {
     }
     setVerdict(null)
     setAttempt((prev) => prev + 1)
-    setCurrent((prev) => pickOther(challenges, prev))
     startScan(false)
   }, [attempt, startScan])
 
@@ -78,7 +74,6 @@ function App() {
     setGranted(false)
     setVerdict(null)
     setAttempt(1)
-    setCurrent(() => (challenges.length ? pickOther(challenges, null) : null))
   }, [])
 
   const ActiveChallenge = current ? current.Component : null
@@ -103,12 +98,12 @@ function App() {
       <div className="app__statusbar mono">
         <span>Passerelle sécurisée</span>
         <span className="app__attempt">
-          Tentative {String(attempt).padStart(2, '0')} / 03
+          Tentative {String(attempt).padStart(2, '0')} / 01
         </span>
         <span>
           {granted
             ? 'Vérification close'
-            : `Épreuve ${current ? current.index : '—'} / 06`}
+            : `Épreuve ${current ? current.index : '—'} / 01`}
         </span>
       </div>
 
