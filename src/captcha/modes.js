@@ -1,5 +1,6 @@
 import ImageSelectMode from './modes/ImageSelectMode.jsx'
 import PuzzleSliderMode from './modes/PuzzleSliderMode.jsx'
+import RobotCheckboxMode from './modes/RobotCheckboxMode.jsx'
 
 /**
  * Modes exposed by the sentinel widget. Entries are appended by the
@@ -17,6 +18,12 @@ export const CAPTCHA_MODES = [
     label: 'Slider puzzle',
     prompt: 'Étape 1 — validation géométrique.',
     Component: PuzzleSliderMode,
+  },
+  {
+    id: 'robot-checkbox',
+    label: 'Case robot',
+    prompt: 'Étape 1 — déclaration d’identité.',
+    Component: RobotCheckboxMode,
   },
 ]
 
