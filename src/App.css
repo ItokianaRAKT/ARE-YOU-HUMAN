@@ -67,10 +67,6 @@
   color: var(--ink-45);
 }
 
-.app__attempt {
-  color: var(--ink);
-}
-
 .app__main {
   position: relative;
   flex: 1;
@@ -104,12 +100,6 @@
   display: flex;
   animation: rise-in 0.6s var(--ease-organic) both;
   transition: opacity 0.5s var(--ease-clinical);
-}
-
-.app__challenge[data-rejected] {
-  opacity: 0.35;
-  pointer-events: none;
-  user-select: none;
 }
 
 .app__challenge > .challenge {
@@ -188,32 +178,6 @@
 }
 
 /* ------------------------------------------------------------------
-   Verdict bar
-   ------------------------------------------------------------------ */
-.verdict {
-  display: grid;
-  grid-template-columns: 120px 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 26px var(--space-3);
-  background: var(--ink);
-  color: var(--paper);
-  animation: rise-in 0.45s var(--ease-organic) both;
-}
-
-.verdict__label {
-  color: rgba(243, 242, 238, 0.45);
-}
-
-.verdict__message {
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.75;
-  letter-spacing: 0.03em;
-  max-width: 76ch;
-}
-
-/* ------------------------------------------------------------------
    Scan overlay
    ------------------------------------------------------------------ */
 .scan {
@@ -277,71 +241,6 @@
   color: var(--ink-45);
 }
 
-/* ------------------------------------------------------------------
-   Granted screen
-   ------------------------------------------------------------------ */
-.granted {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-3);
-  text-align: center;
-  animation: rise-in 0.8s var(--ease-organic) both;
-}
-
-.granted__title {
-  font-size: clamp(54px, 11vw, 128px);
-  font-weight: 200;
-  letter-spacing: -0.045em;
-  line-height: 1;
-}
-
-.granted__lead {
-  margin-top: var(--space-2);
-  font-size: 19px;
-  font-weight: 300;
-}
-
-.granted__body {
-  max-width: 54ch;
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--ink-70);
-}
-
-.granted__meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-3);
-  margin: var(--space-3) 0 var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--hairline);
-}
-
-.granted__meta div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.granted__meta dt {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ink-45);
-}
-
-.granted__meta dd {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 @media (max-width: 860px) {
   .challenge {
     grid-template-columns: 1fr;
@@ -375,16 +274,6 @@
   .app__footer {
     padding-left: var(--space-2);
     padding-right: var(--space-2);
-  }
-
-  .verdict {
-    grid-template-columns: 1fr;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-2);
-  }
-
-  .granted {
-    padding: var(--space-3) var(--space-2);
   }
 }
 
