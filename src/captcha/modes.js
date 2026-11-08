@@ -1,8 +1,17 @@
+import ImageSelectMode from './modes/ImageSelectMode.jsx'
+
 /**
  * Modes exposed by the sentinel widget. Entries are appended by the
  * mode branches; the widget picks one at random on every reset.
  */
-export const CAPTCHA_MODES = []
+export const CAPTCHA_MODES = [
+  {
+    id: 'image-select',
+    label: 'Sélection d’images',
+    prompt: 'Étape 1 — identification visuelle.',
+    Component: ImageSelectMode,
+  },
+]
 
 export const MODE_TOTAL = CAPTCHA_MODES.length
 
