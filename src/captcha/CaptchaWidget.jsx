@@ -137,8 +137,13 @@ export function CaptchaWidget({ onReject }) {
   const [failures, setFailures] = useState(0)
   const [tried, setTried] = useState([])
   const timerRef = useRef(null)
+  const statusRef = useRef('idle')
 
   useEffect(() => () => window.clearTimeout(timerRef.current), [])
+
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   const registerFailure = () => {
     setFailures((count) => count + 1)
@@ -154,13 +159,13 @@ export function CaptchaWidget({ onReject }) {
   }
 
   const handleVerify = () => {
-    if (status !== 'idle') return
+    if (statusRef.current !== 'idle') return
     setStatus('verifying')
     scheduleFailure(VERIFY_MS)
   }
 
   const handleAutoFail = () => {
-    if (status !== 'idle') return
+    if (statusRef.current !== 'idle') return
     setStatus('verifying')
     scheduleFailure(AUTO_FAIL_MS)
   }
