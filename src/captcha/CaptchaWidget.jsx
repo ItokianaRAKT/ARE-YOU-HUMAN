@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import ChallengeShell from '../components/ChallengeShell.jsx'
-import { CAPTCHA_MODES, MODE_TOTAL, pickCaptchaMode } from './modes.js'
+import { pickCaptchaMode } from './modes.js'
 
 const VERIFY_MS = 1600
 const AUTO_FAIL_MS = 900
 
 const FAILURE_DETAIL =
   'ERR-WIDGET-0x3F : empreinte comportementale non vérifiable.'
-
-const REJECT_MESSAGE =
-  'Quatre protocoles de sécurité enchaînés sans jamais varier. Aucun humain ne recommence quatre fois la même chose. Rejet de l’épreuve 01.'
 
 function ShieldMark() {
   return (
@@ -105,7 +102,7 @@ function VerifyOverlay() {
   )
 }
 
-function FailureBlock({ detail, attempt, total }) {
+function FailureBlock({ detail }) {
   return (
     <div
       className="flex min-h-[190px] flex-col items-center justify-center gap-2 px-4 py-5 text-center"
@@ -120,9 +117,6 @@ function FailureBlock({ detail, attempt, total }) {
       <p className="max-w-[36ch] text-[13px] leading-relaxed text-slate-700">
         Une action louche a été détectée sur ce dispositif. Veuillez réessayer.
       </p>
-      <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-slate-400">
-        Tentative {String(attempt).padStart(2, '0')} / {String(total).padStart(2, '0')}
-      </p>
       <p className="font-mono text-[10px] tracking-wide text-slate-400">
         {detail}
       </p>
@@ -130,12 +124,10 @@ function FailureBlock({ detail, attempt, total }) {
   )
 }
 
-export function CaptchaWidget({ onReject }) {
+export function CaptchaWidget() {
   const [status, setStatus] = useState('idle')
   const [mode, setMode] = useState(() => pickCaptchaMode())
   const [attemptKey, setAttemptKey] = useState(0)
-  const [failures, setFailures] = useState(0)
-  const [tried, setTried] = useState([])
   const timerRef = useRef(null)
   const statusRef = useRef('idle')
 
@@ -145,17 +137,9 @@ export function CaptchaWidget({ onReject }) {
     statusRef.current = status
   }, [status])
 
-  const registerFailure = () => {
-    setFailures((count) => count + 1)
-    setTried((ids) => (mode && !ids.includes(mode.id) ? [...ids, mode.id] : ids))
-  }
-
   const scheduleFailure = (delay) => {
     window.clearTimeout(timerRef.current)
-    timerRef.current = window.setTimeout(() => {
-      setStatus('failed')
-      registerFailure()
-    }, delay)
+    timerRef.current = window.setTimeout(() => setStatus('failed'), delay)
   }
 
   const handleVerify = () => {
@@ -172,20 +156,13 @@ export function CaptchaWidget({ onReject }) {
 
   const handleRetry = () => {
     window.clearTimeout(timerRef.current)
-    if (CAPTCHA_MODES.length > 0 && tried.length >= CAPTCHA_MODES.length) {
-      if (typeof onReject === 'function') onReject(REJECT_MESSAGE)
-      return
-    }
-    setMode(pickCaptchaMode(mode ? mode.id : null, tried))
+    setMode(pickCaptchaMode(mode ? mode.id : null))
     setAttemptKey((key) => key + 1)
     setStatus('idle')
   }
 
   const stateLabel =
     status === 'failed' ? 'Échec' : status === 'verifying' ? 'Vérification…' : 'En attente'
-  const modeNumber = mode ? CAPTCHA_MODES.indexOf(mode) + 1 : 0
-  const meterPct =
-    MODE_TOTAL > 0 ? Math.min(100, Math.round((failures / MODE_TOTAL) * 100)) : 0
 
   return (
     <ChallengeShell
@@ -196,21 +173,7 @@ export function CaptchaWidget({ onReject }) {
         <>
           <div className="status-row">
             <span className="label">Mode</span>
-            <span className="status-value">
-              {mode ? String(modeNumber).padStart(2, '0') : '—'} / {String(MODE_TOTAL).padStart(2, '0')}
-            </span>
-          </div>
-          <div className="status-row">
-            <span className="label">Échecs</span>
-            <span className="status-value flex flex-col items-end gap-1">
-              <span>{String(failures).padStart(2, '0')}</span>
-              <span className="block h-0.5 w-24 overflow-hidden rounded-full bg-slate-200">
-                <span
-                  className="block h-full bg-red-500 transition-all"
-                  style={{ width: `${meterPct}%` }}
-                />
-              </span>
-            </span>
+            <span className="status-value">{mode ? mode.label : '—'}</span>
           </div>
           <div className="status-row">
             <span className="label">État</span>
@@ -238,11 +201,7 @@ export function CaptchaWidget({ onReject }) {
 
           <div className="relative min-h-[190px] px-4 py-5">
             {status === 'failed' ? (
-              <FailureBlock
-                detail={FAILURE_DETAIL}
-                attempt={failures}
-                total={MODE_TOTAL}
-              />
+              <FailureBlock detail={FAILURE_DETAIL} />
             ) : (
               <div className="flex min-h-[180px] flex-col justify-center gap-3">
                 <p className="text-[13px] font-semibold leading-snug text-slate-800">
